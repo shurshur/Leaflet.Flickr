@@ -81,7 +81,10 @@ L.Flickr = L.FeatureGroup.extend({
 			window[cbid] = undefined;
 			var e = document.getElementById(cbid);
 			e.parentNode.removeChild(e);
-			_this._load(json);
+			if(json.stat == 'ok')
+			  _this._load(json);
+			else
+			  alert('Flick API error:\n'+json.message);
 		};
 		var url = 'http://api.flickr.com/services/rest/?method=flickr.photos.search&bbox='+
 		  minll.lng+','+minll.lat+','+maxll.lng+','+maxll.lat+'&has_geo=1&format=json&extras=geo,url_t,owner_name,date_upload'+
