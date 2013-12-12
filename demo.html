@@ -1,16 +1,13 @@
 <html>
 <head>
- <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.5/leaflet.css" />
- <!--[if lte IE 8]>
-  <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.5/leaflet.ie.css" />
- <![endif]-->
- <script src="http://cdn.leafletjs.com/leaflet-0.5/leaflet.js"></script>
+ <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.1/leaflet.css" />
+ <script src="http://cdn.leafletjs.com/leaflet-0.7.1/leaflet.js"></script>
  <script src="Flickr.js"></script>
 </head>
 <body onload="init()">
 <script>
 function init() {
-  var OSM_COPY = 'Map data &copy; <a href="http://www.openstreetmap.org/copyright" target="_new">OpenStreetMap</a> contributors'
+  var OSM_COPY = 'Map data &copy; <a href="http://www.openstreetmap.org/copyright" target="_new">OpenStreetMap</a> contributors';
   var center = new L.LatLng(55.75, 37.6);
   var zoom = 10;
 

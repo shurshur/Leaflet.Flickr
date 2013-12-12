@@ -11,6 +11,7 @@ L.Flickr = L.FeatureGroup.extend({
 		L.FeatureGroup.prototype.initialize.call(this);
 		L.Util.setOptions(this, options);
 		this._api_key = api_key;
+		this._load_licenses();
 	},
 
 	onAdd: function(map, insertAtTheBottom) {
@@ -40,12 +41,17 @@ L.Flickr = L.FeatureGroup.extend({
 			var pdate = new Date(p.dateupload*1000);
 			var months = ['January','February','March','April','May','June','July','August','Septepmber','October','November','December'];
 			pdate = pdate.getDate()+'&nbsp;'+months[pdate.getMonth()]+'&nbsp;'+pdate.getFullYear();
+			var plicense = this._licenses[p.license];
+			if (plicense.url)
+				plicense = '<a href=\"'+plicense.url+'\" target=\"_new\">'+plicense.name+'</a>';
+			else
+				plicense = plicense.name;
 			var ptext = '<img src="http://l.yimg.com/g/images/goodies/white-flickr.png"><br/>'+
-			  p.title+'<br/><a id="'+p.id+'" title="'+p.title+'" href="http://www.flickr.com/photos/'+p.owner+'/'+
-			  p.id+'/" target="_new"><img src="'+p.url_t +'" alt="'+p.title+'" width="167"/></a><br/>'+
-			  '&copy;&nbsp;<a href="http://www.flickr.com/people/'+p.owner+'/" target="_new">'+p.ownername+'</a>, '+
-			  pdate;
-			m.bindPopup(ptext);
+				p.title+'<br/><a id="'+p.id+'" title="'+p.title+'" href="http://www.flickr.com/photos/'+p.owner+'/'+
+				p.id+'/" target="_new"><img src="'+p.url_t +'" alt="'+p.title+'" width="167"/></a><br/>'+
+				'&copy;&nbsp;<a href="http://www.flickr.com/people/'+p.owner+'/" target="_new">'+p.ownername+'</a>, '+
+				plicense+', '+pdate;
+				m.bindPopup(ptext);
 			this.fire('addlayer', {
 				layer: m
 			});
@@ -57,6 +63,33 @@ L.Flickr = L.FeatureGroup.extend({
 		for(var i = 0; i < ks.length-this.options.maxTotal; i++)
 			this.removeLayer(this._layers[ks[i]]);
 		//this.fire("loaded");
+	},
+
+	_load_licenses: function() {
+		var cbid = '_leaflet_flickr_lic';
+		var _this = this;
+		window[cbid] = function (json) {
+			window[cbid] = undefined;
+			var e = document.getElementById(cbid);
+			e.parentNode.removeChild(e);
+			if (json.stat != 'ok') {
+				alert('Flick API error:\n'+json.message);
+				return;
+			}
+				_this._licenses = [];
+			for (var i=0; i<json.licenses.license.length; i++) {
+				var l = json.licenses.license[i];
+				_this._licenses[l.id] = {};
+				_this._licenses[l.id].name = l.name;
+				_this._licenses[l.id].url = l.url;
+			}
+		};
+		var url = 'http://api.flickr.com/services/rest/?method=flickr.photos.licenses.getInfo&api_key='+this._api_key+'&format=json&jsoncallback='+cbid;
+		var script = document.createElement("script");
+		script.type = "text/javascript";
+		script.src = url;
+		script.id = cbid;
+		document.getElementsByTagName("head")[0].appendChild(script);
 	},
 
 	_update: function() {
@@ -82,13 +115,13 @@ L.Flickr = L.FeatureGroup.extend({
 			var e = document.getElementById(cbid);
 			e.parentNode.removeChild(e);
 			if(json.stat == 'ok')
-			  _this._load(json);
+				_this._load(json);
 			else
-			  alert('Flick API error:\n'+json.message);
+				alert('Flick API error:\n'+json.message);
 		};
 		var url = 'http://api.flickr.com/services/rest/?method=flickr.photos.search&bbox='+
-		  minll.lng+','+minll.lat+','+maxll.lng+','+maxll.lat+'&has_geo=1&format=json&extras=geo,url_t,owner_name,date_upload'+
-		  '&per_page='+this.options.maxLoad+'&callback='+cbid+'&api_key='+this._api_key+'&jsoncallback='+cbid;
+			minll.lng+','+minll.lat+','+maxll.lng+','+maxll.lat+'&has_geo=1&format=json&extras=geo,url_t,owner_name,date_upload,license'+
+			'&per_page='+this.options.maxLoad+'&callback='+cbid+'&api_key='+this._api_key+'&jsoncallback='+cbid;
 		var script = document.createElement("script");
 		script.type = "text/javascript";
 		script.src = url;
