@@ -66,30 +66,27 @@ L.Flickr = L.FeatureGroup.extend({
 	},
 
 	_load_licenses: function() {
-		var cbid = '_leaflet_flickr_lic';
+		var url = 'http://api.flickr.com/services/rest/?method=flickr.photos.licenses.getInfo&api_key='+this._api_key+'&format=json&nojsoncallback=1';
+		var req = new XMLHttpRequest();
+		req.open('GET', url, false);
 		var _this = this;
-		window[cbid] = function (json) {
-			window[cbid] = undefined;
-			var e = document.getElementById(cbid);
-			e.parentNode.removeChild(e);
+		req.onreadystatechange = function() {
+			if (req.readyState !=4) return;
+			if (req.status != 200) return;
+			var json = JSON.parse(req.responseText);
 			if (json.stat != 'ok') {
 				alert('Flick API error:\n'+json.message);
 				return;
 			}
-				_this._licenses = [];
+			_this._licenses = [];
 			for (var i=0; i<json.licenses.license.length; i++) {
 				var l = json.licenses.license[i];
 				_this._licenses[l.id] = {};
 				_this._licenses[l.id].name = l.name;
 				_this._licenses[l.id].url = l.url;
 			}
-		};
-		var url = 'http://api.flickr.com/services/rest/?method=flickr.photos.licenses.getInfo&api_key='+this._api_key+'&format=json&jsoncallback='+cbid;
-		var script = document.createElement("script");
-		script.type = "text/javascript";
-		script.src = url;
-		script.id = cbid;
-		document.getElementsByTagName("head")[0].appendChild(script);
+		}
+		req.send(null);
 	},
 
 	_update: function() {
@@ -107,26 +104,25 @@ L.Flickr = L.FeatureGroup.extend({
   		bbox[3] = maxll.lat;
 		this._bbox = bbox;
 		this._zoom = zoom;
-		var _this = this;
-		var cbid = '_leaflet_flickr';
-		window[cbid] = function (json) {
-			_this.json = json;
-			window[cbid] = undefined;
-			var e = document.getElementById(cbid);
-			e.parentNode.removeChild(e);
-			if(json.stat == 'ok')
-				_this._load(json);
-			else
-				alert('Flick API error:\n'+json.message);
-		};
 		var url = 'http://api.flickr.com/services/rest/?method=flickr.photos.search&bbox='+
 			minll.lng+','+minll.lat+','+maxll.lng+','+maxll.lat+'&has_geo=1&format=json&extras=geo,url_t,owner_name,date_upload,license'+
-			'&per_page='+this.options.maxLoad+'&callback='+cbid+'&api_key='+this._api_key+'&jsoncallback='+cbid;
-		var script = document.createElement("script");
-		script.type = "text/javascript";
-		script.src = url;
-		script.id = cbid;
-		document.getElementsByTagName("head")[0].appendChild(script);
+			'&per_page='+this.options.maxLoad+'&api_key='+this._api_key+'&nojsoncallback=1'
+		var req = new XMLHttpRequest();
+		req.open('GET', url, false);
+		var _this = this;
+		req.onreadystatechange = function() {
+			if (req.readyState !=4) return;
+			if (req.status != 200) return;
+			var json = JSON.parse(req.responseText);
+			if(json.stat == 'ok')
+				_this._load(json);
+			else {
+				// don't show error if code=4 && message="Not a valid bounding box"
+				if (json.code == 4) return;
+				alert('Flick API error:\n'+json.message);
+			}
+		}
+		req.send(null);
 	}
 
 });
