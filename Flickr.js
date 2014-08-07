@@ -66,7 +66,7 @@ L.Flickr = L.FeatureGroup.extend({
 	},
 
 	_load_licenses: function() {
-		var url = 'http://api.flickr.com/services/rest/?method=flickr.photos.licenses.getInfo&api_key='+this._api_key+'&format=json&nojsoncallback=1';
+		var url = 'https://api.flickr.com/services/rest/?method=flickr.photos.licenses.getInfo&api_key='+this._api_key+'&format=json&nojsoncallback=1';
 		var req = new XMLHttpRequest();
 		req.open('GET', url, false);
 		var _this = this;
@@ -104,7 +104,7 @@ L.Flickr = L.FeatureGroup.extend({
   		bbox[3] = maxll.lat;
 		this._bbox = bbox;
 		this._zoom = zoom;
-		var url = 'http://api.flickr.com/services/rest/?method=flickr.photos.search&bbox='+
+		var url = 'https://api.flickr.com/services/rest/?method=flickr.photos.search&bbox='+
 			minll.lng+','+minll.lat+','+maxll.lng+','+maxll.lat+'&has_geo=1&format=json&extras=geo,url_t,owner_name,date_upload,license'+
 			'&per_page='+this.options.maxLoad+'&api_key='+this._api_key+'&nojsoncallback=1'
 		var req = new XMLHttpRequest();
